@@ -1,7 +1,6 @@
 
 
 
-
 *15 December 2017*
 ### Docker? 
 Docker is an open source container base technology. It runs in a container, which is a type of virtualization where the host kernel is used instead of a hypervisor that emulates hardware and then a VM runs its own kernel. Docker container shares all the resources of the host machine. Docker works kind of like git. You can have a container image and then you can commit changes to and then use docker to deploy the changes to all of your docker containers by doing a docker pull <container> on each of your hosts.
@@ -45,6 +44,34 @@ Etcher is typically the easiest option for most users to write images to SD card
 ``` 
 
 # Copying the Image to the SD Card
+```
+•	In a terminal window, write the image to the card with the command below, making sure you replace the input file if= argument with the path to your .img file, and the /dev/sdX in the output file of= argument with the correct device name. If you provide the wrong device name you will lose all the data on the hard drive, that is why this is very important. You have to make sure that the device name is the name of the whole SD card as described above, not just a partition.
+ For example: sdd, not sdds1 or sddp1, and mmcblk0, not mmcblk0p1.
 
+dd bs=4M if=2017-09-07-raspbian-stretch.img of=/dev/sdX conv=fsync
+•	Please note that block size set to 4M will work most of the time. If not, try 1M, although this will take considerably 
+```
 
+# Checking the Image Copy Progress
+```
+•	The command dd   won’t give you any information about the progress, it may appear like it’s frozen. It takes a couple of minutes to finish writing to the card. It may blink during the write process if your card reader has an LED.
+•	You can run the dd command with the status option, to see the progress of the copy operation. 
+
+dd bs=4M if=2017-09-07-raspbian-stretch.img of=/dev/sdX status=progress conv=fsync
+ 
+•	Use the dcfldd command instead, which will give a progress report showing how much has been written. Another method is to send a USR1 signal to dd, which will let it print status information. Find out the PID of dd by using pgrep -l dd or ps a | grep dd. Then use kill -USR1 PID to send the USR1 signal to dd. 
+```
+
+# Checking whether the Image was correct written to SD Card
+```
+•	After dd has finished copying, you can check what has been written to the SD card by dd-ing from the card back to another image on your hard disk; truncating the new image to the same size as the original; and then running diff (or md5sum) on those two images.
+•	If the SD card is bigger than the original image size, dd will make a copy of the whole card. We must therefore truncate the new image to the size of the original image. Make sure you replace the input file if= argument with the correct device name. diff should report that the files are identical. 
+
+dd bs=4M if=/dev/sdX of=from-sd-card.img
+truncate --reference 2017-09-07-raspbian-stretch.img from-sd-card.img
+diff -s from-sd-card.img 2017-09-07-raspbian-stretch.img 
+
+•	Run sync. This will ensure the write cache is flushed and that it is safe to unmount your SD card. 
+•	Remove the SD card from the card reader.
+```
 
